@@ -1,0 +1,58 @@
+﻿# CMakeList.txt: tun2vless 的 CMake 项目，在此处包括源代码并定义
+# 项目特定的逻辑。
+#
+cmake_minimum_required (VERSION 3.8)
+
+# 设置策略CMP0091为NEW，新策略
+if (POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif (POLICY CMP0091)
+
+project ("tun2vless")
+
+#libhv
+add_definitions(-DHV_SOURCE)
+add_definitions(-DPRINT_DEBUG)
+add_definitions(-DPRINT_ERROR)
+
+set(LIBHV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libhv)
+
+include_directories(${LIBHV_DIR}/include/hv)
+include_directories(${LIBHV_DIR}/base)
+
+file(GLOB LIBHV_BASE_SOURCE_FILES ${LIBHV_DIR}/base/*.c)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_BASE_SOURCE_FILES})
+
+file(GLOB LIBHV_CPPUTIL_SOURCE_FILES ${LIBHV_DIR}/cpputil/*.cpp)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_CPPUTIL_SOURCE_FILES})
+
+file(GLOB LIBHV_EVENT_SOURCE_FILES ${LIBHV_DIR}/event/*.c)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_EVENT_SOURCE_FILES})
+file(GLOB LIBHV_EVENT_SOURCE_FILES ${LIBHV_DIR}/event/wepoll/*.c)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_EVENT_SOURCE_FILES})
+
+file(GLOB LIBHV_HTTP_SOURCE_FILES ${LIBHV_DIR}/http/*.c)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_HTTP_SOURCE_FILES})
+
+file(GLOB LIBHV_HTTP_SOURCE_FILES ${LIBHV_DIR}/http/*.cpp)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_HTTP_SOURCE_FILES})
+
+file(GLOB LIBHV_HTTP_SOURCE_FILES ${LIBHV_DIR}/http/client/*.cpp)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_HTTP_SOURCE_FILES})
+
+file(GLOB LIBHV_SSL_SOURCE_FILES ${LIBHV_DIR}/ssl/*.c)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_SSL_SOURCE_FILES})
+
+file(GLOB LIBHV_UTIL_SOURCE_FILES ${LIBHV_DIR}/util/*.c)
+set(LIBHV_SOURCE_FILES ${LIBHV_SOURCE_FILES} ${LIBHV_UTIL_SOURCE_FILES})
+
+
+# 将源代码添加到此项目的可执行文件。
+add_executable (tun2vless "tun2vless.cpp" ${LIBHV_SOURCE_FILES})
+
+# 设置MT/MTd
+set_property(TARGET tun2vless PROPERTY
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	
+# TODO: 如有需要，请添加测试并安装目标。
+ 
