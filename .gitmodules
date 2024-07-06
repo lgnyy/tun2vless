@@ -1,0 +1,3 @@
+[submodule "c/mongoose"]
+	path = c/mongoose
+	url = https://github.com/lgnyy/mongoose
