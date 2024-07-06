@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="mongoose">
+      <UniqueIdentifier>{67d89504-9877-4d01-b5e4-79f93cc2e051}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mongoose\src">
+      <UniqueIdentifier>{1b46716a-6902-40e9-ba60-6db94ce32f30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mongoose\src\wepool">
+      <UniqueIdentifier>{6285702b-e693-429f-b6cf-2a17efae0c37}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mongoose\src\ws.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\base64.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\fmt.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\http.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\log.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\sha1.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\printf.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\url.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\util.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\arch.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\arch_win32.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\json.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\net.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\ssi.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\version.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\iobuf.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\event.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\fs.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\str.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\queue.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\dns.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\timer.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\tls.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\wepoll\wepoll.h">
+      <Filter>mongoose\src\wepool</Filter>
+    </ClInclude>
+    <ClInclude Include="mongoose\src\tls_wintls.h">
+      <Filter>mongoose\src</Filter>
+    </ClInclude>
+    <ClInclude Include="inet.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="icache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="mongoose\src\ws.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\base64.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\fmt.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\http.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\log.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\sha1.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\printf.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\util.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\url.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\json.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\ssi.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\iobuf.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\event.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\fs.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\fs_posix.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\str.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\queue.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\dns.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\timer.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\tls_dummy.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="tun2vless.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\net.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\sock.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\tls_wintls.c">
+      <Filter>mongoose\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongoose\src\wepoll\wepoll.c">
+      <Filter>mongoose\src\wepool</Filter>
+    </ClCompile>
+    <ClCompile Include="tun_wintun.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
