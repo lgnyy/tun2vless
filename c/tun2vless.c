@@ -8,6 +8,9 @@
 #include "./mongoose/src/log.h"
 
 #include "./inet.h"
+#if TUN2VLESS_CACHE_ON
+#include "./icache.h"
+#endif
 
 int tun_main(int argc, char* argv[], int port);
 
@@ -51,6 +54,9 @@ struct conn_userdata {
   uint32_t flags_rfu : 28;
   struct iphdr ip;
   char iprfu[60];
+#if TUN2VLESS_CACHE_ON
+	struct icachectx icctx;
+#endif
 };
 
 static int _make_ip_header(struct iphdr* ip, struct iphdr* ret_ip, uint32_t tot_len) {
@@ -186,6 +192,9 @@ static void _ws_msg(struct mg_connection* c, struct mg_ws_message* msg) {
   _make_ip_header(&ud->ip, (struct iphdr*)ret_buf, 40 + data_len);
   _make_tcp_header(0, inet_get_tcp(&ud->ip), (struct tcphdr*)(ret_buf + 20), ud, data_ptr, data_len); // data
   _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, data_ptr, data_len);
+#if TUN2VLESS_CACHE_ON
+  icache_add(&ud->icctx, ((struct tcphdr*)(ret_buf + 20))->seq, data_ptr, data_len);
+#endif
 }
 
 static void ws_fn(struct mg_connection* c, int ev, void* ev_data) {
@@ -322,6 +331,19 @@ static void do_ip_packet(struct mg_connection* c, struct iphdr* ip) {
       }
       if (tcp->ack && (tcp->doff > 5) && (tcp->ack_seq != ud->seq)) {
         MG_ERROR(("<-tcp=%d off=%d ack_seq incorrect!!!", nc->id, offset)); // TODO:
+#if TUN2VLESS_CACHE_ON
+        //if (ud->is_ack_nack == 2) {
+          //ud->is_ack_nack = 0;
+          struct icacheitem* item = icache_find(&ud->icctx, tcp->ack_seq);
+          if (item != NULL) {
+            uint8_t ret_buf[40];
+            _make_ip_header(ip, (struct iphdr*)ret_buf, 40 + item->len);
+            _make_tcp_header(MAKE_TCP_HEADER_OP_RESEND, tcp, (struct tcphdr*)(ret_buf + 20), ud, item->data, item->len); // ack + data
+
+            _tcp_send_ip_packet(nc, (struct iphdr*)ret_buf, item->data, item->len);
+          }
+        //}
+#endif
       }
       else if (rv || tcp->fin ){
         uint8_t ret_buf[40];
