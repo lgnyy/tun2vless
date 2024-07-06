@@ -50,6 +50,7 @@ struct conn_userdata {
   uint32_t is_ws_closed : 1;
   uint32_t flags_rfu : 28;
   struct iphdr ip;
+  char iprfu[60];
 };
 
 static int _make_ip_header(struct iphdr* ip, struct iphdr* ret_ip, uint32_t tot_len) {
@@ -60,26 +61,30 @@ static int _make_ip_header(struct iphdr* ip, struct iphdr* ret_ip, uint32_t tot_
   ret_ip->tot_len = htons(tot_len);
   ret_ip->id = htons(ack_id++);
   ret_ip->frag_off = htons(0x4000);
-  ret_ip->ttl = 255;
+  ret_ip->ttl = 0x80; // 255;
   ret_ip->protocol = 6;
   ret_ip->saddr = ip->daddr;
   ret_ip->daddr = ip->saddr;
   ret_ip->check = ip_checksum((uint8_t*)ret_ip, 20);
   return 20;
 }
-static int _make_tcp_header(struct tcphdr* tcp, struct tcphdr* ret_tcp, struct conn_userdata* ud, const void* data_ptr, size_t data_len) {
+#define MAKE_TCP_HEADER_OP_FIN 1
+#define MAKE_TCP_HEADER_OP_RESEND 2
+#define MAKE_TCP_HEADER_OP_RST 3
+static int _make_tcp_header(int op, struct tcphdr* tcp, struct tcphdr* ret_tcp, struct conn_userdata* ud, const void* data_ptr, size_t data_len) {
   memset(ret_tcp, 0, sizeof(*ret_tcp));
   ret_tcp->source = tcp->dest;
   ret_tcp->dest = tcp->source;
-  ret_tcp->seq = ud->seq;
+  ret_tcp->seq = (op == MAKE_TCP_HEADER_OP_RESEND)? tcp->ack_seq : ud->seq;
 
   if (tcp->syn || tcp->fin || tcp->rst) {
     ud->ack_seq = htonl(ntohl(tcp->seq) + 1);
   }
-  else {
+  else if (tcp->ack){
     uint32_t tot_len = ntohs(((struct iphdr*)(tcp)-1)->tot_len);
-    if (tot_len > 40) {
-      ud->ack_seq = htonl(ntohl(tcp->seq) + tot_len - 40);
+    uint32_t offset = (((struct iphdr*)(tcp)-1)->ihl + tcp->doff) << 2;
+    if (tot_len > offset) {
+      ud->ack_seq = htonl(ntohl(tcp->seq) + tot_len - offset);
     }
   }
 
@@ -89,19 +94,28 @@ static int _make_tcp_header(struct tcphdr* tcp, struct tcphdr* ret_tcp, struct c
     memcpy(ret_tcp + 1, "\x02\x04\xff\xd7\x01\x03\x03\x08\x01\x01\x04\x02", 12);
   }
   else {
-    if (data_len > 0) {
-      ret_tcp->psh = 1;
-      ud->seq = htonl(ntohl(ud->seq) + data_len);
+    if (op == MAKE_TCP_HEADER_OP_FIN){
+      ret_tcp->fin = 1;
     }
-    else {
-      ret_tcp->fin = (tcp->res1 & 0x01);
+    else if (op == MAKE_TCP_HEADER_OP_RST) {
+      ret_tcp->rst = 1;
+    }
+    else if (data_len > 0) {
+      ret_tcp->psh = 1;
     }
     ret_tcp->doff = 5;
   }
   ret_tcp->ack_seq = ud->ack_seq;
   ret_tcp->ack = 1;
 
-  ret_tcp->window = htons(0xffff);
+  if (ret_tcp->syn || ret_tcp->fin) {
+    ud->seq = htonl(ntohl(ud->seq) + 1);
+  }
+  else if ((data_len > 0) && (op != MAKE_TCP_HEADER_OP_RESEND)) {
+    ud->seq = htonl(ntohl(ud->seq) + data_len);
+  }
+
+  ret_tcp->window = htons(0x1800); // 0xffff
 
   ret_tcp->check = tcp_checksum(ret_tcp, data_ptr, data_len);
   return (ret_tcp->doff << 2);
@@ -145,7 +159,7 @@ static void _ws_open(struct mg_connection* c) {
     if (tcp->syn) {
       uint8_t ret_buf[52];
       _make_ip_header(&ud->ip, (struct iphdr*)ret_buf, 52); 
-      _make_tcp_header(tcp, (struct tcphdr*)(ret_buf + 20), ud, NULL, 0); // sync
+      _make_tcp_header(0, tcp, (struct tcphdr*)(ret_buf + 20), ud, NULL, 0); // sync
 
       _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, NULL, 0);
      }
@@ -170,7 +184,7 @@ static void _ws_msg(struct mg_connection* c, struct mg_ws_message* msg) {
 
   uint8_t ret_buf[40];
   _make_ip_header(&ud->ip, (struct iphdr*)ret_buf, 40 + data_len);
-  _make_tcp_header(inet_get_tcp(&ud->ip), (struct tcphdr*)(ret_buf + 20), ud, data_ptr, data_len); // data
+  _make_tcp_header(0, inet_get_tcp(&ud->ip), (struct tcphdr*)(ret_buf + 20), ud, data_ptr, data_len); // data
   _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, data_ptr, data_len);
 }
 
@@ -300,26 +314,27 @@ static void do_ip_packet(struct mg_connection* c, struct iphdr* ip) {
       }
       MG_DEBUG(("<-tcp=%d syn=%d, ack=%d, fin=%d, seq=0x%x, ack_seq=0x%x, len=0x%x", nc->id, tcp->syn, tcp->ack, tcp->fin, ntohl(tcp->seq), ntohl(tcp->ack_seq), tot_len - offset));
 
-#if 1 // Í¬²½ÐòºÅ
-      if (tcp->ack) {
-        ((struct conn_userdata*)(nc + 1))->seq = tcp->ack_seq;
+      struct conn_userdata* ud = (struct conn_userdata*)(nc + 1);
+      bool rv =_ws_send_ip_packet(nc, ip, offset);
+      
+      if (rv && tcp->seq != ud->ack_seq) {
+        MG_ERROR(("<-tcp=%d off=%d seq incorrect!!!", nc->id, offset));
       }
-#endif
-      bool rv = _ws_send_ip_packet(nc, ip, offset);
-      if (rv || tcp->fin){
-        struct conn_userdata* ud = (struct conn_userdata*)(nc + 1);
+      if (tcp->ack && (tcp->doff > 5) && (tcp->ack_seq != ud->seq)) {
+        MG_ERROR(("<-tcp=%d off=%d ack_seq incorrect!!!", nc->id, offset)); // TODO:
+      }
+      else if (rv || tcp->fin ){
         uint8_t ret_buf[40];
         _make_ip_header(ip, (struct iphdr*)ret_buf, 40);
-        _make_tcp_header(tcp, (struct tcphdr*)(ret_buf + 20), ud, NULL, 0); // ack
-
+        _make_tcp_header(0, tcp, (struct tcphdr*)(ret_buf + 20), ud, NULL, 0); // ack
+       
         _tcp_send_ip_packet(nc, (struct iphdr*)ret_buf, NULL, 0);
 
         if (tcp->fin){
           // send data ...
 
-          tcp->fin = 0; tcp->res1 = 1; // fin
           _make_ip_header(ip, (struct iphdr*)ret_buf, 40);
-          _make_tcp_header(tcp, (struct tcphdr*)(ret_buf + 20), ud, NULL, 0); // fin
+          _make_tcp_header(MAKE_TCP_HEADER_OP_FIN, tcp, (struct tcphdr*)(ret_buf + 20), ud, NULL, 0); // fin
 
           _tcp_send_ip_packet(nc, (struct iphdr*)ret_buf, NULL, 0);
           mg_close_conn(nc);
@@ -385,7 +400,7 @@ static void* thread_function(void* param) {
   struct mg_mgr mgr;
   mg_mgr_init(&mgr);
   mgr.userdata = param;
-  mgr.extraconnsize = 80; // save ip head
+  mgr.extraconnsize = sizeof(struct conn_userdata); // save ip head
   mg_listen(&mgr, ((struct mgr_userdata*)param)->tcpsvr, tcp_fn, &done);
   while (!done) {
     mg_mgr_poll(&mgr, 10000);
@@ -405,10 +420,8 @@ static void _get_opts(int argc, char* argv[], const char* names[], char* outs[])
   }
 }
 
-#define TUN2VLESS_MIAN_MODE   2 // 1-TUN, 2-VLESS // test
-
 int main(int argc, char* argv[]) {
-#if (TUN2VLESS_MIAN_MODE == 1)
+#if (TUN2VLESS_MAIN_MODE == 1)
   return tun_main(argc, argv, 55551);
 #else
   const char* ParamNames[] = { "-loglevel", "-tcpsvr", "-vlurl", "-vlguid", NULL };
@@ -427,7 +440,7 @@ int main(int argc, char* argv[]) {
 
   struct mgr_userdata ud = { .tcpsvr = ParamVals[1], .vlurl = ParamVals[2] };
   mg_base64_decode(ParamVals[3], strlen(ParamVals[3]), ud.vlguid, sizeof(ud.vlguid));
- #if(TUN2VLESS_MIAN_MODE == 2)
+ #if(TUN2VLESS_MAIN_MODE == 2)
   ud.is_hexdumping = mg_log_level >= MG_LL_DEBUG;
   thread_function(&ud);
   return 0;
