@@ -53,7 +53,8 @@ struct conn_userdata {
   uint32_t is_ws_closed : 1;
   uint32_t flags_rfu : 28;
   struct iphdr ip;
-  char iprfu[60];
+  char iprfu[52];
+  struct mg_str str1;
 #if TUN2VLESS_CACHE_ON
 	struct icachectx icctx;
 #endif
@@ -127,6 +128,14 @@ static int _make_tcp_header(int op, struct tcphdr* tcp, struct tcphdr* ret_tcp, 
   return (ret_tcp->doff << 2);
 }
 
+static int _make_udp_header(struct udphdr* udp, struct udphdr* ret_udp, struct conn_userdata* ud, const void* data_ptr, size_t data_len) {
+  ret_udp->source = udp->dest;
+  ret_udp->dest = udp->source;
+  ret_udp->length = htons(8+data_len);
+  ret_udp->check = udp_checksum(ret_udp, data_ptr, data_len);
+  return 8;
+}
+
 static bool _tcp_send_ip_packet(struct mg_connection* c, struct iphdr* ip, const void* data_ptr, size_t data_len) {
   uint32_t tot_len = ntohs(ip->tot_len);
   if (c->is_hexdumping) {
@@ -154,6 +163,7 @@ static bool _tcp_send_ip_packet(struct mg_connection* c, struct iphdr* ip, const
   }
 }
 
+static bool _ws_send_ip_packet(struct mg_connection* c, struct iphdr* ip, uint32_t offset);
 static void _ws_open(struct mg_connection* c) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
   ud->is_ws_opened = 1;
@@ -170,11 +180,21 @@ static void _ws_open(struct mg_connection* c) {
       _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, NULL, 0);
      }
   }
+  else if (ud->str1.len > 0) {
+    uint32_t offset = (((struct iphdr*)(ud->str1.buf))->ihl + 2) << 2;
+    _ws_send_ip_packet(c, (struct iphdr*)(ud->str1.buf), offset);
+    ud->str1.len = 0;
+  }
 }
 static void _ws_close(struct mg_connection* c) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
   ud->is_ws_closed = 1;
   // TODO: conn fin
+  if (ud->str1.buf != NULL) {
+    free(ud->str1.buf);
+    ud->str1.buf = NULL;
+    ud->str1.len = 0;
+  }
 }
 static void _ws_msg(struct mg_connection* c, struct mg_ws_message* msg) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
@@ -189,12 +209,19 @@ static void _ws_msg(struct mg_connection* c, struct mg_ws_message* msg) {
   }
 
   uint8_t ret_buf[40];
-  _make_ip_header(&ud->ip, (struct iphdr*)ret_buf, 40 + data_len);
-  _make_tcp_header(0, inet_get_tcp(&ud->ip), (struct tcphdr*)(ret_buf + 20), ud, data_ptr, data_len); // data
-  _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, data_ptr, data_len);
+  if (ud->ip.protocol == IPPROTO_TCP) {
+    _make_ip_header(&ud->ip, (struct iphdr*)ret_buf, 40 + data_len);
+    _make_tcp_header(0, inet_get_tcp(&ud->ip), (struct tcphdr*)(ret_buf + 20), ud, data_ptr, data_len); // data
+    _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, data_ptr, data_len);
 #if TUN2VLESS_CACHE_ON
-  icache_add(&ud->icctx, ((struct tcphdr*)(ret_buf + 20))->seq, data_ptr, data_len);
+    icache_add(&ud->icctx, ((struct tcphdr*)(ret_buf + 20))->seq, data_ptr, data_len);
 #endif
+  }
+  else {
+    _make_ip_header(&ud->ip, (struct iphdr*)ret_buf, 28 + data_len);
+    _make_udp_header(inet_get_udp(&ud->ip), (struct udphdr*)(ret_buf + 20), ud, data_ptr, data_len); // data
+    _tcp_send_ip_packet(c, (struct iphdr*)ret_buf, data_ptr, data_len);
+  }
 }
 
 static void ws_fn(struct mg_connection* c, int ev, void* ev_data) {
@@ -310,14 +337,6 @@ static void do_ip_packet(struct mg_connection* c, struct iphdr* ip) {
         }
         else {
           MG_DEBUG(("<-tcp=%d syn=%d, ack=%d, fin=%d, seq=0x%x, ack_seq=0x%x, len=0x%x", 0, tcp->syn, tcp->ack, tcp->fin, ntohl(tcp->seq), ntohl(tcp->ack_seq), tot_len - offset));
-          //uint8_t ret_buf[40];
-          //tcp->fin = 1;
-          //_make_ip_header(ip, (struct iphdr*)ret_buf, 40);
-          //_make_tcp_header(tcp, (struct tcphdr*)(ret_buf + 20), tcp->ack_seq, NULL, 0); // ack
-          //if (((struct mgr_userdata*)c->mgr->userdata)->is_hexdumping) {
-          //  mg_hexdump(ret_buf, 40);
-          //}
-          //_tcp_send_ip_packet(c, (struct iphdr*)ret_buf, NULL, 0);
           return;
         }
       }
@@ -376,8 +395,24 @@ static void do_ip_packet(struct mg_connection* c, struct iphdr* ip) {
       struct mg_connection* nc = _ws_find_conn(c->mgr, ip);
       if (nc == NULL) {
         nc = mg_ws_connect(c->mgr, ((struct mgr_userdata*)c->mgr->userdata)->vlurl, ws_fn, NULL, NULL);
+        if (nc == NULL) {
+          MG_ERROR(("mg_ws_connect fail!"));
+          return;
+        }
       }
-      // TODO: 
+
+      struct conn_userdata* ud = (struct conn_userdata*)(nc + 1);
+      if (ud->is_ws_opened) {
+        _ws_send_ip_packet(nc, ip, offset);
+      }
+      else {
+        ud->str1.len = 0;
+        ud->str1.buf = realloc(ud->str1.buf, tot_len);
+        if (ud->str1.buf != NULL) {
+          memcpy(ud->str1.buf, ip, tot_len);
+          ud->str1.len = tot_len;
+        }
+      }
     }
   }
 }
@@ -462,11 +497,11 @@ int main(int argc, char* argv[]) {
 
   struct mgr_userdata ud = { .tcpsvr = ParamVals[1], .vlurl = ParamVals[2] };
   mg_base64_decode(ParamVals[3], strlen(ParamVals[3]), ud.vlguid, sizeof(ud.vlguid));
- #if(TUN2VLESS_MAIN_MODE == 2)
   ud.is_hexdumping = mg_log_level >= MG_LL_DEBUG;
+#if(TUN2VLESS_MAIN_MODE == 2)
   thread_function(&ud);
   return 0;
-#endif
+ #endif
 
   MG_INFO(("main argc=%d\n", argc));
 

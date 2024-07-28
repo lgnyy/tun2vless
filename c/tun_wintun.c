@@ -549,7 +549,7 @@ int tun_main(int argc, char* argv[], int sport)
                 }
         }
 
-        Session = WintunStartSession(Adapter, 0x400000);
+        Session = WintunStartSession(Adapter, WINTUN_MAX_RING_CAPACITY>>2);
         if (!Session)
         {
                 LastError = LogLastError(L"Failed to create adapter");

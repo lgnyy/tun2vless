@@ -112,7 +112,23 @@ static uint16_t tcp_checksum(const struct tcphdr* tcp, const void* data_ptr, siz
     return inet_checksum(sum, (const uint8_t*)tcp, (int)nbytes);
   }
 }
-#define udp_checksum tcp_checksum
+
+static uint16_t udp_checksum(const struct udphdr* udp, const void* data_ptr, size_t data_len) {
+  const struct iphdr* ip = ((struct iphdr*)udp) - 1;
+  size_t nbytes = 12 + data_len;
+  uint16_t* tmp = (uint16_t*)&(ip->saddr);
+  uint8_t ptcl[2] = { 0, ip->protocol };
+  uint8_t tcpl[2] = { (nbytes >> 8) & 0xFF, (nbytes & 0xFF) }; // ntohs
+  // Î±Ê×²¿
+  uint32_t sum = tmp[0] + tmp[1] + tmp[2] + tmp[3] + *((uint16_t*)ptcl) + *((uint16_t*)tcpl);
+  // udp
+  const uint8_t* addr = (const uint8_t*)udp;
+  nbytes = 12;
+  for (; nbytes > 1; nbytes -= 2, addr += 2) {
+    sum += *(uint16_t*)addr;
+  }
+  return inet_checksum(sum, (const uint8_t*)data_ptr, (int)data_len);
+}
 
 #define inet_get_tcp(ip) (struct tcphdr*)(((uint8_t*)(ip)) + ((ip)->ihl << 2))
 #define inet_get_udp(ip) (struct udphdr*)(((uint8_t*)(ip)) + ((ip)->ihl << 2))
