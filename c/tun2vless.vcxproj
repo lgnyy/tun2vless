@@ -84,26 +84,28 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>./libhv/include;./libhv/include/hv;./libhv/base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;MG_ENABLE_EPOLL=1;MG_TLS_WINTLS=11;MG_TLS=11;__LITTLE_ENDIAN_BITFIELD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./lwip/src/include;./lwip/src/ports/include;E:\svn\software\SDK\openssl\1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;MG_ENABLE_EPOLL=1;MG_TLS_WINTLS=11;MG_TLS11=11;MG_TLS=2;__LITTLE_ENDIAN_BITFIELD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>Secur32.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Secur32.lib;Crypt32.lib;Iphlpapi.lib;libcrypto.lib;libssl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\svn\software\SDK\openssl\1.1.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>./libhv/include;./libhv/include/hv;./libhv/base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./lwip/src/include;./lwip/src/ports/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;MG_ENABLE_EPOLL1=1;MG_TLS_WINTLS=11;MG_TLS=11;__LITTLE_ENDIAN_BITFIELD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -111,6 +113,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -163,6 +166,120 @@
   <ItemGroup>
     <ClInclude Include="icache.h" />
     <ClInclude Include="inet.h" />
+    <ClInclude Include="lwip\src\include\compat\posix\arpa\inet.h" />
+    <ClInclude Include="lwip\src\include\compat\posix\netdb.h" />
+    <ClInclude Include="lwip\src\include\compat\posix\net\if.h" />
+    <ClInclude Include="lwip\src\include\compat\posix\sys\socket.h" />
+    <ClInclude Include="lwip\src\include\compat\stdc\errno.h" />
+    <ClInclude Include="lwip\src\include\lwip\acd.h" />
+    <ClInclude Include="lwip\src\include\lwip\altcp.h" />
+    <ClInclude Include="lwip\src\include\lwip\altcp_tcp.h" />
+    <ClInclude Include="lwip\src\include\lwip\altcp_tls.h" />
+    <ClInclude Include="lwip\src\include\lwip\api.h" />
+    <ClInclude Include="lwip\src\include\lwip\arch.h" />
+    <ClInclude Include="lwip\src\include\lwip\autoip.h" />
+    <ClInclude Include="lwip\src\include\lwip\debug.h" />
+    <ClInclude Include="lwip\src\include\lwip\def.h" />
+    <ClInclude Include="lwip\src\include\lwip\dhcp.h" />
+    <ClInclude Include="lwip\src\include\lwip\dhcp6.h" />
+    <ClInclude Include="lwip\src\include\lwip\dns.h" />
+    <ClInclude Include="lwip\src\include\lwip\err.h" />
+    <ClInclude Include="lwip\src\include\lwip\errno.h" />
+    <ClInclude Include="lwip\src\include\lwip\etharp.h" />
+    <ClInclude Include="lwip\src\include\lwip\ethip6.h" />
+    <ClInclude Include="lwip\src\include\lwip\icmp.h" />
+    <ClInclude Include="lwip\src\include\lwip\icmp6.h" />
+    <ClInclude Include="lwip\src\include\lwip\if_api.h" />
+    <ClInclude Include="lwip\src\include\lwip\igmp.h" />
+    <ClInclude Include="lwip\src\include\lwip\inet.h" />
+    <ClInclude Include="lwip\src\include\lwip\inet_chksum.h" />
+    <ClInclude Include="lwip\src\include\lwip\init.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip4.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip4_addr.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip4_frag.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip6.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip6_addr.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip6_frag.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip6_zone.h" />
+    <ClInclude Include="lwip\src\include\lwip\ip_addr.h" />
+    <ClInclude Include="lwip\src\include\lwip\mem.h" />
+    <ClInclude Include="lwip\src\include\lwip\memp.h" />
+    <ClInclude Include="lwip\src\include\lwip\mld6.h" />
+    <ClInclude Include="lwip\src\include\lwip\nd6.h" />
+    <ClInclude Include="lwip\src\include\lwip\netbuf.h" />
+    <ClInclude Include="lwip\src\include\lwip\netdb.h" />
+    <ClInclude Include="lwip\src\include\lwip\netif.h" />
+    <ClInclude Include="lwip\src\include\lwip\netifapi.h" />
+    <ClInclude Include="lwip\src\include\lwip\opt.h" />
+    <ClInclude Include="lwip\src\include\lwip\pbuf.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\altcp_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\api_msg.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\memp_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\memp_std.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\mem_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\nd6_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\raw_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\sockets_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\tcpip_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\priv\tcp_priv.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\acd.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\autoip.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\dhcp.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\dhcp6.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\dns.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\etharp.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\ethernet.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\iana.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\icmp.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\icmp6.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\ieee.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\igmp.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\ip.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\ip4.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\ip6.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\mld6.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\nd6.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\tcp.h" />
+    <ClInclude Include="lwip\src\include\lwip\prot\udp.h" />
+    <ClInclude Include="lwip\src\include\lwip\raw.h" />
+    <ClInclude Include="lwip\src\include\lwip\sio.h" />
+    <ClInclude Include="lwip\src\include\lwip\snmp.h" />
+    <ClInclude Include="lwip\src\include\lwip\sockets.h" />
+    <ClInclude Include="lwip\src\include\lwip\stats.h" />
+    <ClInclude Include="lwip\src\include\lwip\sys.h" />
+    <ClInclude Include="lwip\src\include\lwip\tcp.h" />
+    <ClInclude Include="lwip\src\include\lwip\tcpbase.h" />
+    <ClInclude Include="lwip\src\include\lwip\tcpip.h" />
+    <ClInclude Include="lwip\src\include\lwip\timeouts.h" />
+    <ClInclude Include="lwip\src\include\lwip\udp.h" />
+    <ClInclude Include="lwip\src\include\netif\bridgeif.h" />
+    <ClInclude Include="lwip\src\include\netif\bridgeif_opts.h" />
+    <ClInclude Include="lwip\src\include\netif\etharp.h" />
+    <ClInclude Include="lwip\src\include\netif\ethernet.h" />
+    <ClInclude Include="lwip\src\include\netif\ieee802154.h" />
+    <ClInclude Include="lwip\src\include\netif\lowpan6.h" />
+    <ClInclude Include="lwip\src\include\netif\lowpan6_ble.h" />
+    <ClInclude Include="lwip\src\include\netif\lowpan6_common.h" />
+    <ClInclude Include="lwip\src\include\netif\lowpan6_opts.h" />
+    <ClInclude Include="lwip\src\include\netif\slipif.h" />
+    <ClInclude Include="lwip\src\include\netif\zepif.h" />
+    <ClInclude Include="lwip\src\ports\include\arch\bpstruct.h" />
+    <ClInclude Include="lwip\src\ports\include\arch\cc.h" />
+    <ClInclude Include="lwip\src\ports\include\arch\epstruct.h" />
+    <ClInclude Include="lwip\src\ports\include\arch\perf.h" />
+    <ClInclude Include="lwip\src\ports\include\arch\sys_arch.h" />
+    <ClInclude Include="lwip\src\ports\include\lwipopts.h" />
+    <ClInclude Include="lwip\src\ports\include\netif\fifo.h" />
+    <ClInclude Include="lwip\src\ports\include\netif\list.h" />
+    <ClInclude Include="lwip\src\ports\include\netif\pcapif.h" />
+    <ClInclude Include="lwip\src\ports\include\netif\sio.h" />
+    <ClInclude Include="lwip\src\ports\include\netif\tapif.h" />
+    <ClInclude Include="lwip\src\ports\win32\include\bpstruct.h" />
+    <ClInclude Include="lwip\src\ports\win32\include\cc.h" />
+    <ClInclude Include="lwip\src\ports\win32\include\epstruct.h" />
+    <ClInclude Include="lwip\src\ports\win32\include\perf.h" />
+    <ClInclude Include="lwip\src\ports\win32\include\sys_arch.h" />
     <ClInclude Include="mongoose\src\arch.h" />
     <ClInclude Include="mongoose\src\arch_win32.h" />
     <ClInclude Include="mongoose\src\base64.h" />
@@ -182,6 +299,7 @@
     <ClInclude Include="mongoose\src\str.h" />
     <ClInclude Include="mongoose\src\timer.h" />
     <ClInclude Include="mongoose\src\tls.h" />
+    <ClInclude Include="mongoose\src\tls_openssl.h" />
     <ClInclude Include="mongoose\src\tls_wintls.h" />
     <ClInclude Include="mongoose\src\url.h" />
     <ClInclude Include="mongoose\src\util.h" />
@@ -190,6 +308,64 @@
     <ClInclude Include="mongoose\src\ws.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lwip\src\api\api_lib.c" />
+    <ClCompile Include="lwip\src\api\api_msg.c" />
+    <ClCompile Include="lwip\src\api\err.c" />
+    <ClCompile Include="lwip\src\api\if_api.c" />
+    <ClCompile Include="lwip\src\api\netbuf.c" />
+    <ClCompile Include="lwip\src\api\netdb.c" />
+    <ClCompile Include="lwip\src\api\netifapi.c" />
+    <ClCompile Include="lwip\src\api\sockets.c" />
+    <ClCompile Include="lwip\src\api\tcpip.c" />
+    <ClCompile Include="lwip\src\core\altcp.c" />
+    <ClCompile Include="lwip\src\core\altcp_alloc.c" />
+    <ClCompile Include="lwip\src\core\altcp_tcp.c" />
+    <ClCompile Include="lwip\src\core\def.c" />
+    <ClCompile Include="lwip\src\core\dns.c" />
+    <ClCompile Include="lwip\src\core\inet_chksum.c" />
+    <ClCompile Include="lwip\src\core\init.c" />
+    <ClCompile Include="lwip\src\core\ip.c" />
+    <ClCompile Include="lwip\src\core\ipv4\acd.c" />
+    <ClCompile Include="lwip\src\core\ipv4\autoip.c" />
+    <ClCompile Include="lwip\src\core\ipv4\dhcp.c" />
+    <ClCompile Include="lwip\src\core\ipv4\etharp.c" />
+    <ClCompile Include="lwip\src\core\ipv4\icmp.c" />
+    <ClCompile Include="lwip\src\core\ipv4\igmp.c" />
+    <ClCompile Include="lwip\src\core\ipv4\ip4.c" />
+    <ClCompile Include="lwip\src\core\ipv4\ip4_addr.c" />
+    <ClCompile Include="lwip\src\core\ipv4\ip4_frag.c" />
+    <ClCompile Include="lwip\src\core\ipv6\dhcp6.c" />
+    <ClCompile Include="lwip\src\core\ipv6\ethip6.c" />
+    <ClCompile Include="lwip\src\core\ipv6\icmp6.c" />
+    <ClCompile Include="lwip\src\core\ipv6\inet6.c" />
+    <ClCompile Include="lwip\src\core\ipv6\ip6.c" />
+    <ClCompile Include="lwip\src\core\ipv6\ip6_addr.c" />
+    <ClCompile Include="lwip\src\core\ipv6\ip6_frag.c" />
+    <ClCompile Include="lwip\src\core\ipv6\mld6.c" />
+    <ClCompile Include="lwip\src\core\ipv6\nd6.c" />
+    <ClCompile Include="lwip\src\core\mem.c" />
+    <ClCompile Include="lwip\src\core\memp.c" />
+    <ClCompile Include="lwip\src\core\netif.c" />
+    <ClCompile Include="lwip\src\core\pbuf.c" />
+    <ClCompile Include="lwip\src\core\raw.c" />
+    <ClCompile Include="lwip\src\core\stats.c" />
+    <ClCompile Include="lwip\src\core\sys.c" />
+    <ClCompile Include="lwip\src\core\tcp.c" />
+    <ClCompile Include="lwip\src\core\tcp_in.c" />
+    <ClCompile Include="lwip\src\core\tcp_out.c" />
+    <ClCompile Include="lwip\src\core\timeouts.c" />
+    <ClCompile Include="lwip\src\core\udp.c" />
+    <ClCompile Include="lwip\src\netif\bridgeif.c" />
+    <ClCompile Include="lwip\src\netif\bridgeif_fdb.c" />
+    <ClCompile Include="lwip\src\netif\ethernet.c" />
+    <ClCompile Include="lwip\src\netif\lowpan6.c" />
+    <ClCompile Include="lwip\src\netif\lowpan6_ble.c" />
+    <ClCompile Include="lwip\src\netif\lowpan6_common.c" />
+    <ClCompile Include="lwip\src\netif\slipif.c" />
+    <ClCompile Include="lwip\src\netif\zepif.c" />
+    <ClCompile Include="lwip\src\ports\lib\mem.c" />
+    <ClCompile Include="lwip\src\ports\win32\lib\sys_arch.c" />
+    <ClCompile Include="lwip\src\ports\win32\netif\sio.c" />
     <ClCompile Include="mongoose\src\base64.c" />
     <ClCompile Include="mongoose\src\dns.c" />
     <ClCompile Include="mongoose\src\event.c" />
@@ -209,6 +385,7 @@
     <ClCompile Include="mongoose\src\str.c" />
     <ClCompile Include="mongoose\src\timer.c" />
     <ClCompile Include="mongoose\src\tls_dummy.c" />
+    <ClCompile Include="mongoose\src\tls_openssl.c" />
     <ClCompile Include="mongoose\src\tls_wintls.c" />
     <ClCompile Include="mongoose\src\url.c" />
     <ClCompile Include="mongoose\src\util.c" />
