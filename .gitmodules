@@ -1,3 +1,6 @@
 [submodule "c/mongoose"]
 	path = c/mongoose
 	url = https://github.com/lgnyy/mongoose
+[submodule "c/lwip"]
+	path = c/lwip
+	url = https://github.com/heiher/lwip

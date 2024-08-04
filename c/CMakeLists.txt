@@ -21,8 +21,16 @@ include_directories(${MG_SRC_DIR})
 file(GLOB MG_SRC_FILES ${MG_SRC_DIR}/*.c)
 
 
+set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip)
+set(LWIP_SRC_DIR ${LWIP_DIR}/src)
+
+include_directories(${LWIP_SRC_DIR}/include)
+
+file(GLOB MG_SRC_FILES ${LWIP_SRC_DIR}/*.c)
+
+
 # 将源代码添加到此项目的可执行文件。
-add_executable(tun2vless "tun2vless.c" "tun_wintun.c" ${MG_SRC_FILES})
+add_executable(tun2vless "tun2vless.c" "tun_wintun.c" ${MG_SRC_FILES} ${LWIP_SRC_DIR})
 #
 # 设置MT/MTd
 set_property(TARGET tun2vless PROPERTY

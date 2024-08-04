@@ -10,11 +10,23 @@
    
    
 ## c语言版本
-依赖[mongoose]
-命令行：tun2vless -ip 10.0.6.7 -route 110.242.68.66 -loglevel 4 -tcpsvr tcp://127.0.0.1:55551 -vlurl xx -vlguid xxx > out.log
-	参数：-vlguid 为base64编码
+依赖[mongoose](https://github.com/lgnyy/mongoose),[lwip](https://github.com/heiher/lwip)
+
+命令行：tun2vless -ip xx -route xx -loglevel 3 -tcpsvr tcp://127.0.0.1 -vlurl xx -vlguid xxx> out.log
+
+参数 | 说明
+-------- | -----
+-name | tun网卡名称
+-ip | tun网卡IP
+-defroute | 给tun网卡配置默认路由，程序退出时恢复为系统默认路由
+-route | 给tun网卡增加路由（可配置多个）
+-loglevel | 日志基本（1-ERROR, 2-INFO, 3-DEBUG, 4-VERBOSE）
+-tcpsvr | tun与代理之间的通道，格式：tcp://ip[:port]
+-vlurl | vless服务器地址
+-vlguid | vless的GUID（base64编码）
+-socks5 | socks5代理服务地址
 
 - window
+
  - 存在的问题
   1. 用vs2019打开文件夹（CMakeLists.txt）编译tun_wintun.c报错（ws2ipdef.h）
-  2. wintun有丢包现象（调用WintunSendPacket成功，到会收到一个丢包的ack）导致卡死；增加简单重发机制，没解决卡死问题；难道要引入tcp协议（如lwip）

@@ -7,6 +7,7 @@
 #include "./mongoose/src/base64.h"
 #include "./mongoose/src/log.h"
 
+#include <lwip/sys.h>
 #include <lwip/init.h>
 #include <lwip/tcp.h>
 #include <lwip/udp.h>
@@ -44,7 +45,7 @@ struct mgr_userdata {
   const char* socks5; // tcp://address:port
   const char* vlurl; // vless url
   uint8_t vlguid[16+4]; // base64
-  uint16_t tcpport; // 0: Ëæ»ú¶Ë¿Ú
+  uint16_t tcpport; // 0: éšæœºç«¯å£
   uint16_t is_hexdumping : 1; // 
   uint16_t is_hexdumping_socks5 : 1;
   uint16_t flags_rfu : 14;
@@ -56,7 +57,7 @@ struct mgr_userdata {
 };
 
 struct conn_userdata {
-  uint32_t is_proxy_opened : 1; // ´úÀí½øÈë½»»»Êı¾İ×´Ì¬
+  uint32_t is_proxy_opened : 1; // ä»£ç†è¿›å…¥äº¤æ¢æ•°æ®çŠ¶æ€
   uint32_t is_proxy_closed : 1; // rfu
   uint32_t is_ws_opened : 1;
   uint32_t is_ws_sent : 1; // rfu
@@ -65,21 +66,21 @@ struct conn_userdata {
   uint32_t is_socks_authentication : 1; // rfu
   uint32_t is_socks_request : 1;
   uint32_t flags_rfu : 8;
-  uint32_t dest_port; // Ä¿µÄ¶Ë¿Ú
-  ip_addr_t dest_addr; // Ä¿µÄIP
+  uint32_t dest_port; // ç›®çš„ç«¯å£
+  ip_addr_t dest_addr; // ç›®çš„IP
   uint64_t at_ping; // 
-  struct pbuf* queue; // »º´æ´ı·¢Êı¾İ£¨ÔÚ´úÀíÎª½¨Á¢Ç°£©
+  struct pbuf* queue; // ç¼“å­˜å¾…å‘æ•°æ®ï¼ˆåœ¨ä»£ç†ä¸ºå»ºç«‹å‰ï¼‰
   struct tcp_pcb* tcp;
   struct udp_pcb* udp;
-  size_t ring_buf_wp; // »·ĞÎ»º³åÇø-Ğ´Î»ÖÃ
-  size_t ring_buf_max_size; // »·ĞÎ»º³åÇø-×î´ó³¤¶È
-  uint8_t* ring_buf_ptr; // »·ĞÎ»º³åÇø
+  size_t ring_buf_wp; // ç¯å½¢ç¼“å†²åŒº-å†™ä½ç½®
+  size_t ring_buf_max_size; // ç¯å½¢ç¼“å†²åŒº-æœ€å¤§é•¿åº¦
+  uint8_t* ring_buf_ptr; // ç¯å½¢ç¼“å†²åŒº
 };
 #define get_mgr_ud(mgr) ((struct mgr_userdata*)(((struct mg_mgr*)(mgr))->userdata))
 
 
 static size_t _proxy_send(struct mg_connection* c, const uint8_t* buf, size_t len);
-// ½øÈë´úÀí×´Ì¬£¬´¦Àí´ı·¢ËÍÊı¾İ
+// è¿›å…¥ä»£ç†çŠ¶æ€ï¼Œå¤„ç†å¾…å‘é€æ•°æ®
 static void _proxy_open(struct mg_connection* c) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
   struct pbuf* p;
@@ -93,7 +94,7 @@ static void _proxy_open(struct mg_connection* c) {
   //pbuf_free_header(ud->queue, ud->queue->tot_len);
   ud->queue = NULL;
 }
-// ¹Ø±Õ´úÀí£¨tcp/udp£©£¬ÊÍ·Å×ÊÔ´£¬±ê¼Ç´ı¹Ø±ÕµÄÁ¬½Ó
+// å…³é—­ä»£ç†ï¼ˆtcp/udpï¼‰ï¼Œé‡Šæ”¾èµ„æºï¼Œæ ‡è®°å¾…å…³é—­çš„è¿æ¥
 static void _proxy_close(struct mg_connection* c) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
   ud->is_proxy_closed = 1;
@@ -116,7 +117,7 @@ static void _proxy_close(struct mg_connection* c) {
   c->is_closing = 1;
 }
 
-// ´úÀí·¢ËÍ
+// ä»£ç†å‘é€
 static size_t _proxy_send(struct mg_connection* c, const uint8_t* buf, size_t len) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
   size_t rv;
@@ -143,7 +144,7 @@ static size_t _proxy_send(struct mg_connection* c, const uint8_t* buf, size_t le
   return rv;
 }
 
-// ´úÀí½ÓÊÕ×ª·¢
+// ä»£ç†æ¥æ”¶è½¬å‘
 static void _proxy_msg(struct mg_connection* c, const char* data_ptr, size_t data_len) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
 
@@ -200,7 +201,7 @@ static void _proxy_msg(struct mg_connection* c, const char* data_ptr, size_t dat
 }
 
 
-// wss-vless´úÀí´¦Àí¹ı³Ì
+// wss-vlessä»£ç†å¤„ç†è¿‡ç¨‹
 static void _proxy_ws_fn(struct mg_connection* c, int ev, void* ev_data) {
   struct conn_userdata* ud = (struct conn_userdata*)(c + 1);
 
@@ -255,8 +256,8 @@ static void _proxy_ws_fn(struct mg_connection* c, int ev, void* ev_data) {
 
       /**
         * https://xtls.github.io/development/protocols/vless.html
-        * 1 ×Ö½Ú        16 ×Ö½Ú         1 ×Ö½Ú            M ×Ö½Ú       1 ×Ö½Ú    2 ×Ö½Ú    1 ×Ö½Ú    S ×Ö½Ú    X ×Ö½Ú
-        * Ğ­Òé°æ±¾    µÈ¼Û UUID    ¸½¼ÓĞÅÏ¢³¤¶È M    ¸½¼ÓĞÅÏ¢ProtoBuf    Ö¸Áî        ¶Ë¿Ú      µØÖ·ÀàĞÍ    µØÖ·    ÇëÇóÊı¾İ
+        * 1 å­—èŠ‚        16 å­—èŠ‚         1 å­—èŠ‚            M å­—èŠ‚       1 å­—èŠ‚    2 å­—èŠ‚    1 å­—èŠ‚    S å­—èŠ‚    X å­—èŠ‚
+        * åè®®ç‰ˆæœ¬    ç­‰ä»· UUID    é™„åŠ ä¿¡æ¯é•¿åº¦ M    é™„åŠ ä¿¡æ¯ProtoBuf    æŒ‡ä»¤        ç«¯å£      åœ°å€ç±»å‹    åœ°å€    è¯·æ±‚æ•°æ®
       */
       uint8_t* tbuf = (uint8_t*)malloc(26 + p->len);
       if (tbuf != NULL) {
@@ -283,7 +284,7 @@ static void _proxy_ws_fn(struct mg_connection* c, int ev, void* ev_data) {
   }
 }
 
-// socks5´úÀí´¦Àí¹ı³Ì
+// socks5ä»£ç†å¤„ç†è¿‡ç¨‹
 static void _proxy_socks5_fn(struct mg_connection* c, int ev, void* ev_data) {
   if (ev == MG_EV_OPEN) {
     c->is_hexdumping = ((struct mgr_userdata*)c->mgr->userdata)->is_hexdumping_socks5;
@@ -307,9 +308,9 @@ static void _proxy_socks5_fn(struct mg_connection* c, int ev, void* ev_data) {
 
           // VER | CMD |  RSV  | ATYP | DST.ADDR | DST.PORT 
           tbuf[0] = 0x05;
-          tbuf[1] = (ud->tcp)? 0x01 : 0x03; // 0x01±íÊ¾CONNECTÇëÇó, 0x02±íÊ¾BINDÇëÇó, 0x03±íÊ¾UDP×ª·¢
+          tbuf[1] = (ud->tcp)? 0x01 : 0x03; // 0x01è¡¨ç¤ºCONNECTè¯·æ±‚, 0x02è¡¨ç¤ºBINDè¯·æ±‚, 0x03è¡¨ç¤ºUDPè½¬å‘
           tbuf[2] = 0x00;
-          tbuf[3] = 0x01; // 0x01±íÊ¾IPv4µØÖ·£¬0x03±íÊ¾ÓòÃû£¬ 0x04±íÊ¾IPv6µØÖ·
+          tbuf[3] = 0x01; // 0x01è¡¨ç¤ºIPv4åœ°å€ï¼Œ0x03è¡¨ç¤ºåŸŸåï¼Œ 0x04è¡¨ç¤ºIPv6åœ°å€
           *((uint32_t*)(tbuf + 4)) = ip_2_ip4(&(ud->dest_addr))->addr;
           *((uint16_t*)(tbuf + 8)) = htons(ud->dest_port);
           mg_send(c, tbuf, 10);
@@ -338,7 +339,7 @@ static void _proxy_socks5_fn(struct mg_connection* c, int ev, void* ev_data) {
 }
 
 
-// ¹ÜµÀ£¨ÓëtunÖ®¼äÊı¾İ½»»¥£©´¦Àí¹ı³Ì
+// ç®¡é“ï¼ˆä¸tunä¹‹é—´æ•°æ®äº¤äº’ï¼‰å¤„ç†è¿‡ç¨‹
 static void pipe_tcp_fn(struct mg_connection* c, int ev, void* ev_data) {
   if (ev == MG_EV_OPEN) {
     c->is_hexdumping = ((struct mgr_userdata*)c->mgr->userdata)->is_hexdumping;
@@ -347,12 +348,12 @@ static void pipe_tcp_fn(struct mg_connection* c, int ev, void* ev_data) {
     }
     else { // accepted
       ((struct mgr_userdata*)c->mgr->userdata)->c_pipe = c;
-      // ¹Ø±ÕlistenµÄsocket
+      // å…³é—­listençš„socket
       mg_close_conn(c->mgr->conns->next);
     }
   }
   else if (ev == MG_EV_READ) {
-    // IP±¨ÎÄ
+    // IPæŠ¥æ–‡
     struct pbuf* buf;
     struct netif* netif = &(((struct mgr_userdata*)c->mgr->userdata)->netif);
 
@@ -379,7 +380,7 @@ static void pipe_tcp_fn(struct mg_connection* c, int ev, void* ev_data) {
   }
 }
 
-// ÒÔÏÂÎªnetifÏà¹Øº¯Êı£¬»ùÓÚlwipÊµÏÖ
+// ä»¥ä¸‹ä¸ºnetifç›¸å…³å‡½æ•°ï¼ŒåŸºäºlwipå®ç°
 static err_t netif_output_handler(struct netif* netif, struct pbuf* p){
   ssize_t s =0;
   struct mg_connection* c = get_mgr_ud(netif->state)->c_pipe;
@@ -603,22 +604,23 @@ static void lwip_timer_fn(void* arg) {
 #if IP_REASSEMBLY
     ip_reass_tmr();
 #endif
-#if LWIP_IPV6
-    nd6_tmr();
-#if LWIP_IPV6_REASS
-    ip6_reass_tmr();
-#endif
-#endif
+//#if LWIP_IPV6
+//    nd6_tmr();
+//#if LWIP_IPV6_REASS
+//    ip6_reass_tmr();
+//#endif
+//#endif
   }
 }
 
-// ¹¤×÷Ïß³Ì
+// å·¥ä½œçº¿ç¨‹
 static void* thread_function(void* param) {
   bool done = false;        // Event handler flips it to true
   struct mg_mgr mgr;
   mg_mgr_init(&mgr);
   mgr.userdata = param;
   mgr.extraconnsize = sizeof(struct conn_userdata); // save ud
+  sys_init();
   lwip_init();
   lwip_gateway_init(&mgr);
   mg_timer_add(&mgr, TCP_TMR_INTERVAL, MG_TIMER_REPEAT, lwip_timer_fn, &mgr); // interval
@@ -631,7 +633,7 @@ static void* thread_function(void* param) {
   return NULL;
 }
 
-// ½âÎömainµÄÊäÈë²ÎÊı
+// è§£æmainçš„è¾“å…¥å‚æ•°
 static void _get_opts(int argc, char* argv[], const char* names[], char* outs[]) {
   for (int i = 0; i < (argc - 1); i++) {
     for (int j = 0; names[j]; j++) {
@@ -642,7 +644,7 @@ static void _get_opts(int argc, char* argv[], const char* names[], char* outs[])
   }
 }
 
-// ³ÌĞòÈë¿Ú£¬Ö§³ÖË«½ø³Ì±àÒë£¨#define TUN2VLESS_MAIN_MODE  0// 1-TUN, 2-VLESS£©
+// ç¨‹åºå…¥å£ï¼Œæ”¯æŒåŒè¿›ç¨‹ç¼–è¯‘ï¼ˆ#define TUN2VLESS_MAIN_MODE  0// 1-TUN, 2-VLESSï¼‰
 int main(int argc, char* argv[]) {
 #if (TUN2VLESS_MAIN_MODE == 1)
   return tun_main(argc, argv, 55551);
@@ -656,14 +658,14 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  // ÈÕÖ¾ÉèÖÃ
+  // æ—¥å¿—è®¾ç½®
   if (ParamVals[0]) {
     mg_log_set(atoi(ParamVals[0])); // MG_LL_VERBOSE
   }
 
   struct mgr_userdata ud = { .tcpsvr = ParamVals[1], .vlurl = ParamVals[2], .socks5 = ParamVals[4] };
   mg_base64_decode(ParamVals[3], strlen(ParamVals[3]), ud.vlguid, sizeof(ud.vlguid));
-  ud.is_hexdumping = mg_log_level >= MG_LL_DEBUG;
+  ud.is_hexdumping = mg_log_level > MG_LL_DEBUG;
   //ud.is_hexdumping_socks5 = 1;
 
 #if(TUN2VLESS_MAIN_MODE == 2)

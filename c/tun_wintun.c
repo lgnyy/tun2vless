@@ -403,7 +403,9 @@ static void tun_socket_do_event(tun_socket_conext* ctx) {
                                 ctx->recvLen += rv;
                                 if (ctx->recvLen == tlen) {
                                         ctx->recvLen = 0;
+#if (TUN2VLESS_MAIN_MODE == 1)
                                         Log(WINTUN_LOG_INFO, L"WintunSendPacket: %d, ip check: %02x %02x", tlen, ctx->sendPacket[10], ctx->sendPacket[11]);
+#endif 
                                         _SendPacket(ctx->sendPacket);
                                 }
                         }
@@ -437,10 +439,10 @@ static BOOL PacketFliter(BYTE* Packet)
         {
                 BYTE* dst = Packet + 16;
                 if ((dst[0] == 10) || ((dst[0] == 192) && (dst[1] == 168)) || ((dst[0] == 172) && ((dst[1] & 0xF0) == 0x10))) {
-                        // 内网IP地址
+                        // 鍐呯綉IP鍦板潃
                 }
                 else if (((dst[0] == 224) && (dst[1] == 0) && (dst[2] == 0)) || (dst[0] == 239)) {
-                        // 预留的组播地址 | 本地管理组播地址
+                        // 棰勭暀鐨勭粍鎾湴鍧� | 鏈湴绠＄悊缁勬挱鍦板潃
                 }
                 else {
                         return TRUE;
@@ -523,7 +525,7 @@ int tun_main(int argc, char* argv[], int sport)
                         goto cleanupAdapter;
                 }
 
-                // 配置route
+                // 閰嶇疆route
                 char cmd[256];
                 for (int i = 0; i < (argc - 1); i++)
                 {
@@ -534,7 +536,7 @@ int tun_main(int argc, char* argv[], int sport)
                         }
                 }
 
-                // 配置默认路由
+                // 閰嶇疆榛樿璺敱
                 if (ParamVals[4] != NULL)
                 {
                         lstrcpyA(DefRouteIP, ParamVals[4]);
@@ -569,7 +571,9 @@ int tun_main(int argc, char* argv[], int sport)
                 {
                         if (PacketFliter(Packet)) // TODO: test
                         {
+#if (TUN2VLESS_MAIN_MODE == 1)
                                 Log(WINTUN_LOG_INFO, L"WintunReceivePacket: %d, ip check: %02x %02x", PacketSize, Packet[10], Packet[11]);
+#endif
                                 send(sockCtx.hSock, Packet, PacketSize, 0);
                         }
                 }
